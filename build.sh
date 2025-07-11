@@ -1,1 +1,1 @@
-go build -o bin/beginia ./src/beginia
+go build -o bin/beginia ./src/main
