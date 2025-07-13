@@ -106,6 +106,7 @@ func (r *CpltDocsRepo) QueryAllCpltDocs() ([]model.DocItem, error) {
 			return nil, fmt.Errorf("failed to unmarshal labels: %w", err)
 		}
 
+		doc.Done = true
 		ret = append(ret, doc)
 	}
 
@@ -141,5 +142,6 @@ func (r *CpltDocsRepo) QueryCpltDocById(id int) (model.DocItem, error) {
 		return model.DocItem{}, fmt.Errorf("failed to unmarshal labels: %w", err)
 	}
 
+	doc.Done = true
 	return doc, nil
 }
