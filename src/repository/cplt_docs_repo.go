@@ -8,16 +8,16 @@ import (
 	"github.com/kyliancc/kyc-beginia/src/model"
 )
 
-type TodoDocsRepo struct {
+type CpltDocsRepo struct {
 	db *sql.DB
 }
 
-func NewTodoDocsRepo(db *sql.DB) *TodoDocsRepo {
-	return &TodoDocsRepo{db: db}
+func NewCpltDocsRepo(db *sql.DB) *CpltDocsRepo {
+	return &CpltDocsRepo{db: db}
 }
 
-func (r *TodoDocsRepo) CreateTodoDoc(doc *model.DocItem) (id int, err error) {
-	stmt, err := r.db.Prepare("INSERT INTO todo_docs(name, comment, priority, labels) VALUES(?,?,?,?)")
+func (r *CpltDocsRepo) CreateCpltDoc(doc *model.DocItem) (id int, err error) {
+	stmt, err := r.db.Prepare("INSERT INTO cplt_docs (created, name, comment, labels) VALUES (?,?,?,?)")
 	if err != nil {
 		return 0, fmt.Errorf("failed to prepare insert: %w", err)
 	}
@@ -28,9 +28,9 @@ func (r *TodoDocsRepo) CreateTodoDoc(doc *model.DocItem) (id int, err error) {
 		return 0, fmt.Errorf("failed to marshal labels: %w", err)
 	}
 
-	res, err := stmt.Exec(doc.Name, doc.Comment, doc.Priority, jsonLabels)
+	res, err := stmt.Exec(doc.Created, doc.Name, doc.Comment, jsonLabels)
 	if err != nil {
-		return 0, fmt.Errorf("failed to insert into todo_docs: %w", err)
+		return 0, fmt.Errorf("failed to insert into cplt_docs: %w", err)
 	}
 
 	lastID, err := res.LastInsertId()
@@ -38,14 +38,14 @@ func (r *TodoDocsRepo) CreateTodoDoc(doc *model.DocItem) (id int, err error) {
 		return 0, fmt.Errorf("failed to get last insert id: %w", err)
 	}
 
-	fmt.Printf("Created todo doc with id %d", lastID)
+	fmt.Printf("Created completed doc with id %d", lastID)
 	return int(lastID), nil
 }
 
-func (r *TodoDocsRepo) DeleteTodoDoc(id int) error {
-	stmt, err := r.db.Prepare("DELETE FROM todo_docs WHERE id=?")
+func (r *CpltDocsRepo) DeleteCpltDoc(id int) error {
+	stmt, err := r.db.Prepare("DELETE FROM cplt_docs WHERE id=?")
 	if err != nil {
-		return fmt.Errorf("failed to prepare deletion: %w", err)
+		return fmt.Errorf("failed to prepare delete: %w", err)
 	}
 	defer stmt.Close()
 
@@ -54,12 +54,12 @@ func (r *TodoDocsRepo) DeleteTodoDoc(id int) error {
 		return fmt.Errorf("failed to delete doc: %w", err)
 	}
 
-	fmt.Printf("Deleted todo doc with id %d", id)
+	fmt.Printf("Deleted completed doc with id %d", id)
 	return nil
 }
 
-func (r *TodoDocsRepo) UpdateTodoDoc(doc *model.DocItem) error {
-	stmt, err := r.db.Prepare("UPDATE todo_docs SET name=?, comment=?, priority=?, labels=? WHERE id=?")
+func (r *CpltDocsRepo) UpdateCpltDoc(doc *model.DocItem) error {
+	stmt, err := r.db.Prepare("UPDATE cplt_docs SET created=?, name=?, comment=?, labels=? WHERE id=?")
 	if err != nil {
 		return fmt.Errorf("failed to prepare update: %w", err)
 	}
@@ -70,17 +70,17 @@ func (r *TodoDocsRepo) UpdateTodoDoc(doc *model.DocItem) error {
 		return fmt.Errorf("failed to marshal labels: %w", err)
 	}
 
-	_, err = stmt.Exec(doc.Name, doc.Comment, doc.Priority, jsonLabels, doc.ID)
+	_, err = stmt.Exec(doc.Created, doc.Name, doc.Comment, jsonLabels, doc.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update doc: %w", err)
 	}
 
-	fmt.Printf("Updated todo doc with id %d", doc.ID)
+	fmt.Printf("Updated doc with id %d", doc.ID)
 	return nil
 }
 
-func (r *TodoDocsRepo) QueryAllTodoDocs() ([]model.DocItem, error) {
-	stmt, err := r.db.Prepare("SELECT * FROM todo_docs")
+func (r *CpltDocsRepo) QueryAllCpltDocs() ([]model.DocItem, error) {
+	stmt, err := r.db.Prepare("SELECT * FROM cplt_docs")
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare query: %w", err)
 	}
@@ -97,7 +97,7 @@ func (r *TodoDocsRepo) QueryAllTodoDocs() ([]model.DocItem, error) {
 	for res.Next() {
 		var doc model.DocItem
 		var rawLabels string
-		if err := res.Scan(&doc.ID, &doc.Created, &doc.Name, &doc.Comment, &doc.Priority, &rawLabels); err != nil {
+		if err = res.Scan(&doc.ID, &doc.Created, &doc.Completed, &doc.Name, &doc.Comment, &rawLabels); err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
 		}
 
@@ -113,8 +113,8 @@ func (r *TodoDocsRepo) QueryAllTodoDocs() ([]model.DocItem, error) {
 	return ret, nil
 }
 
-func (r *TodoDocsRepo) QueryTodoDocById(id int) (model.DocItem, error) {
-	stmt, err := r.db.Prepare("SELECT * FROM todo_docs WHERE id=?")
+func (r *CpltDocsRepo) QueryCpltDocById(id int) (model.DocItem, error) {
+	stmt, err := r.db.Prepare("SELECT * FROM cplt_docs WHERE id=?")
 	if err != nil {
 		return model.DocItem{}, fmt.Errorf("failed to prepare query: %w", err)
 	}
@@ -129,7 +129,7 @@ func (r *TodoDocsRepo) QueryTodoDocById(id int) (model.DocItem, error) {
 	}
 	defer res.Close()
 
-	if err = res.Scan(&doc.ID, &doc.Created, &doc.Name, &doc.Comment, &doc.Priority, &rawLabels); err != nil {
+	if err = res.Scan(&doc.ID, &doc.Created, &doc.Completed, &doc.Name, &doc.Comment, &rawLabels); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return model.DocItem{}, nil
 		}

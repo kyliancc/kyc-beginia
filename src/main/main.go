@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/kyliancc/kyc-beginia/src/model"
 	"github.com/kyliancc/kyc-beginia/src/repository"
 	_ "github.com/mattn/go-sqlite3"
 	"log"
@@ -28,12 +29,14 @@ func main() {
 
 	todoDocRepo := repository.NewTodoDocsRepo(db)
 
-	//doc := model.DocItem{Name: "模拟电子技术基础", Priority: 1}
-	//id, err := todoDocRepo.CreateTodoDoc(doc)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//fmt.Println(id)
+	labels := []string{"电子", "工科"}
+
+	doc := model.DocItem{Name: "数字电子技术基础", Priority: 2, Labels: labels}
+	id, err := todoDocRepo.CreateTodoDoc(&doc)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(id)
 
 	docs, err := todoDocRepo.QueryAllTodoDocs()
 	if err != nil {
