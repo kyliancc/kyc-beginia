@@ -10,6 +10,7 @@
 
 - Golang
 - SQLite
+- Gin
 - Docker
 
 ### 前端（计划中）

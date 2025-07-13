@@ -20,16 +20,16 @@ CREATE TABLE `writings` (
     `category`              TEXT
 );
 
-CREATE TABLE `todo_documents` (
+CREATE TABLE `todo_docs` (
     `id`                    INTEGER PRIMARY KEY AUTOINCREMENT,
     `created`               DATE DEFAULT CURRENT_TIMESTAMP,
     `name`                  VARCHAR(64) NOT NULL,
-    `comment`               VARCHAR(64) NULL,
-    `priority`              INTEGER,
-    `labels`                TEXT NULL
+    `comment`               VARCHAR(64) NULL DEFAULT NULL,
+    `priority`              INTEGER NOT NULL,
+    `labels`                TEXT NULL DEFAULT NULL
 );
 
-CREATE TABLE `completed_documents` (
+CREATE TABLE `cplt_docs` (
     `id`                    INTEGER PRIMARY KEY AUTOINCREMENT,
     `created`               DATE,
     `completed`             DATE DEFAULT CURRENT_TIMESTAMP,
@@ -42,12 +42,12 @@ CREATE TABLE `todo_matters` (
     `id`                    INTEGER PRIMARY KEY AUTOINCREMENT,
     `created`               DATE DEFAULT CURRENT_TIMESTAMP,
     `name`                  VARCHAR(64) NOT NULL,
-    `comment`               VARCHAR(64) NULL,
-    `priority`              INTEGER,
-    `labels`                TEXT
+    `comment`               VARCHAR(64) NULL DEFAULT NULL,
+    `priority`              INTEGER NOT NULL,
+    `labels`                TEXT NULL DEFAULT NULL
 );
 
-CREATE TABLE `completed_matters` (
+CREATE TABLE `cplt_matters` (
     `id`                    INTEGER PRIMARY KEY AUTOINCREMENT,
     `created`               DATE,
     `completed`             DATE DEFAULT CURRENT_TIMESTAMP,

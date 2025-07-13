@@ -1,7 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
+	"github.com/kyliancc/kyc-beginia/src/repository"
+	_ "github.com/mattn/go-sqlite3"
 	"log"
 	"net/http"
 )
@@ -11,9 +14,32 @@ func hello(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	http.HandleFunc("/", hello)
-	err := http.ListenAndServe(":8080", nil)
+	//http.HandleFunc("/", hello)
+	//err := http.ListenAndServe(":8080", nil)
+	//if err != nil {
+	//	log.Fatal("ListenAndServe: ", err)
+	//}
+
+	db, err := sql.Open("sqlite3", "./identifier.sqlite")
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	todoDocRepo := repository.NewTodoDocsRepo(db)
+
+	//doc := model.DocItem{Name: "模拟电子技术基础", Priority: 1}
+	//id, err := todoDocRepo.CreateTodoDoc(doc)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//fmt.Println(id)
+
+	docs, err := todoDocRepo.QueryAllTodoDocs()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, doc := range docs {
+		fmt.Println(doc)
 	}
 }
