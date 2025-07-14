@@ -3,12 +3,12 @@ package model
 import "time"
 
 type DocItem struct {
-	ID        int
-	Created   time.Time
-	Completed time.Time
-	Name      string
-	Comment   string
-	Priority  int
-	Labels    []string
-	Done      bool
+	ID        int       `json:"id"`
+	Created   time.Time `json:"created"`
+	Completed time.Time `json:"completed"`
+	Name      string    `json:"name"`
+	Comment   string    `json:"comment"`
+	Priority  int       `json:"priority"`
+	Labels    []string  `json:"labels"`
+	Done      bool      `json:"done"`
 }

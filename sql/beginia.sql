@@ -10,7 +10,7 @@ CREATE TABLE `global` (
 CREATE TABLE `writings` (
     `id`                    INTEGER PRIMARY KEY AUTOINCREMENT,
     `created`               DATE DEFAULT CURRENT_TIMESTAMP,
-    `modified`              DATE DEFAULT CURRENT_TIMESTAMP,
+    `edited`                DATE DEFAULT CURRENT_TIMESTAMP,
     `title`                 VARCHAR(64),
     `subtitle`              VARCHAR(64) NULL,
     `content`               TEXT NULL,
