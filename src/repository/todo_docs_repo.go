@@ -79,7 +79,7 @@ func (r *TodoDocsRepo) UpdateTodoDoc(doc *model.DocItem) error {
 	return nil
 }
 
-func (r *TodoDocsRepo) QueryAllTodoDocs() ([]model.DocItem, error) {
+func (r *TodoDocsRepo) QueryAllTodoDocs() ([]*model.DocItem, error) {
 	stmt, err := r.db.Prepare("SELECT * FROM todo_docs")
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare query: %w", err)
@@ -92,7 +92,7 @@ func (r *TodoDocsRepo) QueryAllTodoDocs() ([]model.DocItem, error) {
 	}
 	defer res.Close()
 
-	var ret []model.DocItem
+	var ret []*model.DocItem
 
 	for res.Next() {
 		var doc model.DocItem
@@ -106,17 +106,17 @@ func (r *TodoDocsRepo) QueryAllTodoDocs() ([]model.DocItem, error) {
 			return nil, fmt.Errorf("failed to unmarshal labels: %w", err)
 		}
 
-		ret = append(ret, doc)
+		ret = append(ret, &doc)
 	}
 
 	fmt.Printf("Found %d docs", len(ret))
 	return ret, nil
 }
 
-func (r *TodoDocsRepo) QueryTodoDocById(id int) (model.DocItem, error) {
+func (r *TodoDocsRepo) QueryTodoDocById(id int) (*model.DocItem, error) {
 	stmt, err := r.db.Prepare("SELECT * FROM todo_docs WHERE id=?")
 	if err != nil {
-		return model.DocItem{}, fmt.Errorf("failed to prepare query: %w", err)
+		return &model.DocItem{}, fmt.Errorf("failed to prepare query: %w", err)
 	}
 	defer stmt.Close()
 
@@ -125,21 +125,21 @@ func (r *TodoDocsRepo) QueryTodoDocById(id int) (model.DocItem, error) {
 
 	res, err := stmt.Query(id)
 	if err != nil {
-		return model.DocItem{}, fmt.Errorf("failed to execute query: %w", err)
+		return &model.DocItem{}, fmt.Errorf("failed to execute query: %w", err)
 	}
 	defer res.Close()
 
 	if err = res.Scan(&doc.ID, &doc.Created, &doc.Name, &doc.Comment, &doc.Priority, &rawLabels); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.DocItem{}, nil
+			return &model.DocItem{}, nil
 		}
-		return model.DocItem{}, fmt.Errorf("failed to scan row: %w", err)
+		return &model.DocItem{}, fmt.Errorf("failed to scan row: %w", err)
 	}
 
 	err = json.Unmarshal([]byte(rawLabels), &doc.Labels)
 	if err != nil {
-		return model.DocItem{}, fmt.Errorf("failed to unmarshal labels: %w", err)
+		return &model.DocItem{}, fmt.Errorf("failed to unmarshal labels: %w", err)
 	}
 
-	return doc, nil
+	return &doc, nil
 }

@@ -2,7 +2,6 @@ package service
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/kyliancc/kyc-beginia/src/model"
 	"github.com/kyliancc/kyc-beginia/src/repository"
 )
@@ -28,7 +27,67 @@ func (s *DocsService) CreateDoc(doc *model.DocItem) (int, error) {
 	s.maxPriority += 1
 	id, err := s.todoDocsRepo.CreateTodoDoc(doc)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create doc item: %w", err)
+		return 0, err
 	}
 	return id, nil
+}
+
+func (s *DocsService) UpdateDoc(doc *model.DocItem) error {
+	if doc.Done {
+		// Completed doc item
+		err := s.cpltDocsRepo.UpdateCpltDoc(doc)
+		if err != nil {
+			return err
+		}
+	} else {
+		// _Todo doc item
+		err := s.todoDocsRepo.UpdateTodoDoc(doc)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *DocsService) DeleteDoc(doc *model.DocItem) error {
+	if doc.Done {
+		err := s.cpltDocsRepo.DeleteCpltDoc(doc.ID)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := s.todoDocsRepo.DeleteTodoDoc(doc.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *DocsService) GetAllDocs() (todo []*model.DocItem, cplt []*model.DocItem, err error) {
+	todoDocs, todoErr := s.todoDocsRepo.QueryAllTodoDocs()
+	if todoErr != nil {
+		return nil, nil, todoErr
+	}
+	cpltDocs, cpltErr := s.cpltDocsRepo.QueryAllCpltDocs()
+	if cpltErr != nil {
+		return nil, nil, cpltErr
+	}
+	return todoDocs, cpltDocs, nil
+}
+
+func (s *DocsService) GetDoc(doc *model.DocItem) (*model.DocItem, error) {
+	if doc.Done {
+		doc, err := s.cpltDocsRepo.QueryCpltDocById(doc.ID)
+		if err != nil {
+			return nil, err
+		}
+		return doc, nil
+	} else {
+		doc, err := s.todoDocsRepo.QueryTodoDocById(doc.ID)
+		if err != nil {
+			return nil, err
+		}
+		return doc, nil
+	}
 }

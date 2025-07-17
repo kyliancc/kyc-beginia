@@ -21,7 +21,9 @@ func main() {
 
 	vDocs := r.Group("/api/v1/docs")
 	{
-		vDocs.GET("/create", docsHandler.CreateDoc)
+		vDocs.POST("/create", docsHandler.CreateDoc)
+		vDocs.POST("/update", docsHandler.UpdateDoc)
+		vDocs.DELETE("/delete", docsHandler.DeleteDoc)
 	}
 
 	log.Fatal(r.Run(":8080"))

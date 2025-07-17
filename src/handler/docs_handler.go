@@ -32,9 +32,31 @@ func (h *DocsHandler) CreateDoc(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"id": id})
 }
 
-func (h *DocsHandler) UpdateDoc(c *gin.Context) {}
+func (h *DocsHandler) UpdateDoc(c *gin.Context) {
+	var docItem model.DocItem
+	if err := c.ShouldBindJSON(&docItem); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := h.docsService.UpdateDoc(&docItem)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.Status(http.StatusOK)
+}
 
-func (h *DocsHandler) DeleteDoc(c *gin.Context) {}
+func (h *DocsHandler) DeleteDoc(c *gin.Context) {
+	var docItem model.DocItem
+	if err := c.ShouldBindJSON(&docItem); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := h.docsService.DeleteDoc(&docItem)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.Status(http.StatusOK)
+}
 
 func (h *DocsHandler) GetAllDocs(c *gin.Context) {}
 
