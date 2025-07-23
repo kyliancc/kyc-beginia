@@ -59,7 +59,7 @@ func (r *TodoDocsRepo) DeleteTodoDoc(id int) error {
 }
 
 func (r *TodoDocsRepo) UpdateTodoDoc(doc *model.DocItem) error {
-	stmt, err := r.db.Prepare("UPDATE todo_docs SET name=?, comment=?, priority=?, labels=? WHERE id=?")
+	stmt, err := r.db.Prepare("UPDATE todo_docs SET name=?, comment=?, labels=? WHERE id=?")
 	if err != nil {
 		return fmt.Errorf("failed to prepare update: %w", err)
 	}
@@ -70,7 +70,7 @@ func (r *TodoDocsRepo) UpdateTodoDoc(doc *model.DocItem) error {
 		return fmt.Errorf("failed to marshal labels: %w", err)
 	}
 
-	_, err = stmt.Exec(doc.Name, doc.Comment, doc.Priority, jsonLabels, doc.ID)
+	_, err = stmt.Exec(doc.Name, doc.Comment, jsonLabels, doc.ID)
 	if err != nil {
 		return fmt.Errorf("failed to update doc: %w", err)
 	}
@@ -141,5 +141,49 @@ func (r *TodoDocsRepo) QueryTodoDocById(id int) (*model.DocItem, error) {
 		return &model.DocItem{}, fmt.Errorf("failed to unmarshal labels: %w", err)
 	}
 
+	fmt.Printf("Found doc with id %d", doc.ID)
 	return &doc, nil
+}
+
+func (r *TodoDocsRepo) MinusOneAbove(priority int) (naffected int64, err error) {
+	stmt, err := r.db.Prepare("UPDATE todo_docs SET priority = priority - 1 WHERE priority > ?")
+	if err != nil {
+		return 0, fmt.Errorf("failed to update priority: %w", err)
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(priority)
+	if err != nil {
+		return 0, fmt.Errorf("failed to update priority: %w", err)
+	}
+
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get affected rows: %w", err)
+	}
+
+	fmt.Printf("Priority minus one affected rows: %d", affected)
+	return affected, nil
+}
+
+func (r *TodoDocsRepo) SwitchPriority(id1 int, id2 int) error {
+	stmt, err := r.db.Prepare(
+		"UPDATE todo_docs SET priority = CASE " +
+			"WHEN id = ? THEN (SELECT priority FROM todo_docs WHERE id = ?) " +
+			"WHEN id = ? THEN (SELECT priority FROM todo_docs WHERE id = ?) " +
+			"ELSE priority " +
+			"END " +
+			"WHERE id IN (?, ?)")
+	if err != nil {
+		return fmt.Errorf("failed to switch priority: %w", err)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id1, id2, id2, id1, id1, id2)
+	if err != nil {
+		return fmt.Errorf("failed to switch priority: %w", err)
+	}
+
+	fmt.Printf("Switched priority between id %d and %d", id1, id2)
+	return nil
 }

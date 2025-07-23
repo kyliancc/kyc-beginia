@@ -2,6 +2,7 @@ package service
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/kyliancc/kyc-beginia/src/model"
 	"github.com/kyliancc/kyc-beginia/src/repository"
 )
@@ -56,10 +57,21 @@ func (s *DocsService) DeleteDoc(doc *model.DocItem) error {
 			return err
 		}
 	} else {
-		err := s.todoDocsRepo.DeleteTodoDoc(doc.ID)
+		doc, err := s.todoDocsRepo.QueryTodoDocById(doc.ID)
 		if err != nil {
 			return err
 		}
+
+		err = s.todoDocsRepo.DeleteTodoDoc(doc.ID)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.todoDocsRepo.MinusOneAbove(doc.Priority)
+		if err != nil {
+			return err
+		}
+		s.maxPriority -= 1
 	}
 	return nil
 }
@@ -90,4 +102,40 @@ func (s *DocsService) GetDoc(doc *model.DocItem) (*model.DocItem, error) {
 		}
 		return doc, nil
 	}
+}
+
+func (s *DocsService) CompleteDoc(id int) error {
+	doc, err := s.todoDocsRepo.QueryTodoDocById(id)
+	if err != nil {
+		return err
+	}
+	err = s.todoDocsRepo.DeleteTodoDoc(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.todoDocsRepo.MinusOneAbove(doc.Priority)
+	if err != nil {
+		return err
+	}
+	_, err = s.cpltDocsRepo.CreateCpltDoc(doc)
+	if err != nil {
+		return err
+	}
+	s.maxPriority -= 1
+	return nil
+}
+
+func (s *DocsService) SwitchTodoPriority(pairs [][]int) error {
+	for _, pair := range pairs {
+		if len(pair) != 2 {
+			return errors.New("invalid pair")
+		}
+	}
+	for _, pair := range pairs {
+		err := s.todoDocsRepo.SwitchPriority(pair[0], pair[1])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

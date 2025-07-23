@@ -24,6 +24,10 @@ func main() {
 		vDocs.POST("/create", docsHandler.CreateDoc)
 		vDocs.POST("/update", docsHandler.UpdateDoc)
 		vDocs.DELETE("/delete", docsHandler.DeleteDoc)
+		vDocs.GET("/get", docsHandler.GetDoc)
+		vDocs.GET("/get_all", docsHandler.GetAllDocs)
+		vDocs.POST("complete", docsHandler.CompleteDoc)
+		vDocs.POST("switch", docsHandler.SwitchTodoPriority)
 	}
 
 	log.Fatal(r.Run(":8080"))
