@@ -20,7 +20,7 @@ func NewDocsHandler(db *sql.DB) *DocsHandler {
 }
 
 func (h *DocsHandler) CreateDoc(c *gin.Context) {
-	var docItem model.DocItem
+	var docItem model.TodoDocItem
 	if err := c.ShouldBindJSON(&docItem); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -32,30 +32,72 @@ func (h *DocsHandler) CreateDoc(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"id": id})
 }
 
-func (h *DocsHandler) UpdateDoc(c *gin.Context) {
-	var docItem model.DocItem
+func (h *DocsHandler) UpdateTodoDoc(c *gin.Context) {
+	var docItem model.TodoDocItem
 	if err := c.ShouldBindJSON(&docItem); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := h.docsService.UpdateDoc(&docItem)
+	err := h.docsService.UpdateTodoDoc(&docItem)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 	c.Status(http.StatusOK)
 }
 
-func (h *DocsHandler) DeleteDoc(c *gin.Context) {
-	var docItem model.DocItem
+func (h *DocsHandler) UpdateCpltDoc(c *gin.Context) {
+	var docItem model.CpltDocItem
 	if err := c.ShouldBindJSON(&docItem); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	err := h.docsService.DeleteDoc(&docItem)
+	err := h.docsService.UpdateCpltDoc(&docItem)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 	c.Status(http.StatusOK)
+}
+
+func (h *DocsHandler) DeleteTodoDoc(c *gin.Context) {
+	var idParam model.IDParam
+	if err := c.ShouldBindUri(&idParam); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := h.docsService.DeleteTodoDoc(idParam.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.Status(http.StatusOK)
+}
+
+func (h *DocsHandler) DeleteCpltDoc(c *gin.Context) {
+	var idParam model.IDParam
+	if err := c.ShouldBindUri(&idParam); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	err := h.docsService.DeleteCpltDoc(idParam.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.Status(http.StatusOK)
+}
+
+func (h *DocsHandler) GetAllTodoDocs(c *gin.Context) {
+	todo, err := h.docsService.GetAllTodoDocs()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, todo)
+}
+
+func (h *DocsHandler) GetAllCpltDocs(c *gin.Context) {
+	cplt, err := h.docsService.GetAllCpltDocs()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, cplt)
 }
 
 func (h *DocsHandler) GetAllDocs(c *gin.Context) {
@@ -69,13 +111,24 @@ func (h *DocsHandler) GetAllDocs(c *gin.Context) {
 	})
 }
 
-func (h *DocsHandler) GetDoc(c *gin.Context) {
-	var docItem model.DocItem
-	if err := c.ShouldBindJSON(&docItem); err != nil {
+func (h *DocsHandler) GetTodoDoc(c *gin.Context) {
+	var idParam model.IDParam
+	if err := c.ShouldBindUri(&idParam); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
 	}
-	doc, err := h.docsService.GetDoc(&docItem)
+	doc, err := h.docsService.GetTodoDoc(idParam.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	}
+	c.JSON(http.StatusOK, doc)
+}
+
+func (h *DocsHandler) GetCpltDoc(c *gin.Context) {
+	var idParam model.IDParam
+	if err := c.ShouldBindUri(&idParam); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	}
+	doc, err := h.docsService.GetCpltDoc(idParam.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
@@ -83,13 +136,11 @@ func (h *DocsHandler) GetDoc(c *gin.Context) {
 }
 
 func (h *DocsHandler) CompleteDoc(c *gin.Context) {
-	var data map[string]int
-	if err := c.ShouldBindJSON(&data); err != nil {
+	var idParam model.IDParam
+	if err := c.ShouldBindUri(&idParam); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
 	}
-	id := data["id"]
-	err := h.docsService.CompleteDoc(id)
+	err := h.docsService.CompleteDoc(idParam.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}

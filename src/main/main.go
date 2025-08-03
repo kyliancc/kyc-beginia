@@ -22,31 +22,18 @@ func main() {
 	vDocs := r.Group("/api/v1/docs")
 	{
 		vDocs.POST("/create", docsHandler.CreateDoc)
-		vDocs.POST("/update", docsHandler.UpdateDoc)
-		vDocs.DELETE("/delete", docsHandler.DeleteDoc)
-		vDocs.GET("/get", docsHandler.GetDoc)
+		vDocs.POST("/update_todo", docsHandler.UpdateTodoDoc)
+		vDocs.POST("/update_cplt", docsHandler.UpdateCpltDoc)
+		vDocs.DELETE("/delete_todo", docsHandler.DeleteTodoDoc)
+		vDocs.DELETE("/delete_cplt", docsHandler.DeleteCpltDoc)
+		vDocs.GET("/get_todo", docsHandler.GetTodoDoc)
+		vDocs.GET("/get_cplt", docsHandler.GetCpltDoc)
+		vDocs.GET("/get_all_todo", docsHandler.GetAllTodoDocs)
+		vDocs.GET("/get_all_cplt", docsHandler.GetAllCpltDocs)
 		vDocs.GET("/get_all", docsHandler.GetAllDocs)
 		vDocs.POST("complete", docsHandler.CompleteDoc)
 		vDocs.POST("switch", docsHandler.SwitchTodoPriority)
 	}
 
 	log.Fatal(r.Run(":8080"))
-	//todoDocRepo := repository.NewTodoDocsRepo(db)
-	//
-	//labels := []string{"电子", "工科"}
-	//
-	//doc := model.DocItem{Name: "数字电子技术基础", Priority: 2, Labels: labels}
-	//id, err := todoDocRepo.CreateTodoDoc(&doc)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//fmt.Println(id)
-	//
-	//docs, err := todoDocRepo.QueryAllTodoDocs()
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//for _, doc := range docs {
-	//	fmt.Println(doc)
-	//}
 }

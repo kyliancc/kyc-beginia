@@ -16,7 +16,7 @@ func NewCpltDocsRepo(db *sql.DB) *CpltDocsRepo {
 	return &CpltDocsRepo{db: db}
 }
 
-func (r *CpltDocsRepo) CreateCpltDoc(doc *model.DocItem) (id int, err error) {
+func (r *CpltDocsRepo) CreateCpltDoc(doc *model.CpltDocItem) (id int, err error) {
 	stmt, err := r.db.Prepare("INSERT INTO cplt_docs (created, name, comment, labels) VALUES (?,?,?,?)")
 	if err != nil {
 		return 0, fmt.Errorf("failed to prepare insert: %w", err)
@@ -58,7 +58,7 @@ func (r *CpltDocsRepo) DeleteCpltDoc(id int) error {
 	return nil
 }
 
-func (r *CpltDocsRepo) UpdateCpltDoc(doc *model.DocItem) error {
+func (r *CpltDocsRepo) UpdateCpltDoc(doc *model.CpltDocItem) error {
 	stmt, err := r.db.Prepare("UPDATE cplt_docs SET created=?, name=?, comment=?, labels=? WHERE id=?")
 	if err != nil {
 		return fmt.Errorf("failed to prepare update: %w", err)
@@ -79,7 +79,7 @@ func (r *CpltDocsRepo) UpdateCpltDoc(doc *model.DocItem) error {
 	return nil
 }
 
-func (r *CpltDocsRepo) QueryAllCpltDocs() ([]*model.DocItem, error) {
+func (r *CpltDocsRepo) QueryAllCpltDocs() ([]*model.CpltDocItem, error) {
 	stmt, err := r.db.Prepare("SELECT * FROM cplt_docs")
 	if err != nil {
 		return nil, fmt.Errorf("failed to prepare query: %w", err)
@@ -92,10 +92,10 @@ func (r *CpltDocsRepo) QueryAllCpltDocs() ([]*model.DocItem, error) {
 	}
 	defer res.Close()
 
-	var ret []*model.DocItem
+	var ret []*model.CpltDocItem
 
 	for res.Next() {
-		var doc model.DocItem
+		var doc model.CpltDocItem
 		var rawLabels string
 		if err = res.Scan(&doc.ID, &doc.Created, &doc.Completed, &doc.Name, &doc.Comment, &rawLabels); err != nil {
 			return nil, fmt.Errorf("failed to scan row: %w", err)
@@ -106,7 +106,6 @@ func (r *CpltDocsRepo) QueryAllCpltDocs() ([]*model.DocItem, error) {
 			return nil, fmt.Errorf("failed to unmarshal labels: %w", err)
 		}
 
-		doc.Done = true
 		ret = append(ret, &doc)
 	}
 
@@ -114,34 +113,33 @@ func (r *CpltDocsRepo) QueryAllCpltDocs() ([]*model.DocItem, error) {
 	return ret, nil
 }
 
-func (r *CpltDocsRepo) QueryCpltDocById(id int) (*model.DocItem, error) {
+func (r *CpltDocsRepo) QueryCpltDocById(id int) (*model.CpltDocItem, error) {
 	stmt, err := r.db.Prepare("SELECT * FROM cplt_docs WHERE id=?")
 	if err != nil {
-		return &model.DocItem{}, fmt.Errorf("failed to prepare query: %w", err)
+		return &model.CpltDocItem{}, fmt.Errorf("failed to prepare query: %w", err)
 	}
 	defer stmt.Close()
 
-	var doc model.DocItem
+	var doc model.CpltDocItem
 	var rawLabels string
 
 	res, err := stmt.Query(id)
 	if err != nil {
-		return &model.DocItem{}, fmt.Errorf("failed to execute query: %w", err)
+		return &model.CpltDocItem{}, fmt.Errorf("failed to execute query: %w", err)
 	}
 	defer res.Close()
 
 	if err = res.Scan(&doc.ID, &doc.Created, &doc.Completed, &doc.Name, &doc.Comment, &rawLabels); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return &model.DocItem{}, nil
+			return &model.CpltDocItem{}, nil
 		}
-		return &model.DocItem{}, fmt.Errorf("failed to scan row: %w", err)
+		return &model.CpltDocItem{}, fmt.Errorf("failed to scan row: %w", err)
 	}
 
 	err = json.Unmarshal([]byte(rawLabels), &doc.Labels)
 	if err != nil {
-		return &model.DocItem{}, fmt.Errorf("failed to unmarshal labels: %w", err)
+		return &model.CpltDocItem{}, fmt.Errorf("failed to unmarshal labels: %w", err)
 	}
 
-	doc.Done = true
 	return &doc, nil
 }

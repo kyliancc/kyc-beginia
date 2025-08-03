@@ -2,13 +2,42 @@ package model
 
 import "time"
 
-type DocItem struct {
+//type DocItem struct {
+//	ID        int       `json:"id"`
+//	Created   time.Time `json:"created"`
+//	Completed time.Time `json:"completed"`
+//	Name      string    `json:"name"`
+//	Comment   string    `json:"comment"`
+//	Priority  int       `json:"priority"`
+//	Labels    []string  `json:"labels"`
+//	Done      bool      `json:"done"`
+//}
+
+type TodoDocItem struct {
+	ID       int       `json:"id"`
+	Created  time.Time `json:"created"`
+	Name     string    `json:"name"`
+	Comment  string    `json:"comment"`
+	Priority int       `json:"priority"`
+	Labels   []string  `json:"labels"`
+}
+
+type CpltDocItem struct {
 	ID        int       `json:"id"`
 	Created   time.Time `json:"created"`
 	Completed time.Time `json:"completed"`
 	Name      string    `json:"name"`
 	Comment   string    `json:"comment"`
-	Priority  int       `json:"priority"`
 	Labels    []string  `json:"labels"`
-	Done      bool      `json:"done"`
+}
+
+func Todo2CpltDocItem(item *TodoDocItem) *CpltDocItem {
+	return &CpltDocItem{
+		ID:        item.ID,
+		Created:   item.Created,
+		Completed: time.Time{},
+		Name:      item.Name,
+		Comment:   item.Comment,
+		Labels:    item.Labels,
+	}
 }

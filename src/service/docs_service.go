@@ -23,7 +23,7 @@ func NewDocsService(db *sql.DB) *DocsService {
 	}
 }
 
-func (s *DocsService) CreateDoc(doc *model.DocItem) (int, error) {
+func (s *DocsService) CreateDoc(doc *model.TodoDocItem) (int, error) {
 	doc.Priority = s.maxPriority + 1
 	s.maxPriority += 1
 	id, err := s.todoDocsRepo.CreateTodoDoc(doc)
@@ -33,50 +33,66 @@ func (s *DocsService) CreateDoc(doc *model.DocItem) (int, error) {
 	return id, nil
 }
 
-func (s *DocsService) UpdateDoc(doc *model.DocItem) error {
-	if doc.Done {
-		// Completed doc item
-		err := s.cpltDocsRepo.UpdateCpltDoc(doc)
-		if err != nil {
-			return err
-		}
-	} else {
-		// _Todo doc item
-		err := s.todoDocsRepo.UpdateTodoDoc(doc)
-		if err != nil {
-			return err
-		}
+func (s *DocsService) UpdateTodoDoc(doc *model.TodoDocItem) error {
+	err := s.todoDocsRepo.UpdateTodoDoc(doc)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (s *DocsService) DeleteDoc(doc *model.DocItem) error {
-	if doc.Done {
-		err := s.cpltDocsRepo.DeleteCpltDoc(doc.ID)
-		if err != nil {
-			return err
-		}
-	} else {
-		doc, err := s.todoDocsRepo.QueryTodoDocById(doc.ID)
-		if err != nil {
-			return err
-		}
-
-		err = s.todoDocsRepo.DeleteTodoDoc(doc.ID)
-		if err != nil {
-			return err
-		}
-
-		_, err = s.todoDocsRepo.MinusOneAbove(doc.Priority)
-		if err != nil {
-			return err
-		}
-		s.maxPriority -= 1
+func (s *DocsService) UpdateCpltDoc(doc *model.CpltDocItem) error {
+	err := s.cpltDocsRepo.UpdateCpltDoc(doc)
+	if err != nil {
+		return err
 	}
 	return nil
 }
 
-func (s *DocsService) GetAllDocs() (todo []*model.DocItem, cplt []*model.DocItem, err error) {
+func (s *DocsService) DeleteTodoDoc(id int) error {
+	doc, err := s.todoDocsRepo.QueryTodoDocById(id)
+	if err != nil {
+		return err
+	}
+
+	err = s.todoDocsRepo.DeleteTodoDoc(doc.ID)
+	if err != nil {
+		return err
+	}
+
+	_, err = s.todoDocsRepo.MinusOneAbove(doc.Priority)
+	if err != nil {
+		return err
+	}
+	s.maxPriority -= 1
+	return nil
+}
+
+func (s *DocsService) DeleteCpltDoc(id int) error {
+	err := s.cpltDocsRepo.DeleteCpltDoc(id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *DocsService) GetAllTodoDocs() ([]*model.TodoDocItem, error) {
+	todoDocs, todoErr := s.todoDocsRepo.QueryAllTodoDocs()
+	if todoErr != nil {
+		return nil, todoErr
+	}
+	return todoDocs, nil
+}
+
+func (s *DocsService) GetAllCpltDocs() ([]*model.CpltDocItem, error) {
+	cpltDocs, cpltErr := s.cpltDocsRepo.QueryAllCpltDocs()
+	if cpltErr != nil {
+		return nil, cpltErr
+	}
+	return cpltDocs, nil
+}
+
+func (s *DocsService) GetAllDocs() (todo []*model.TodoDocItem, cplt []*model.CpltDocItem, err error) {
 	todoDocs, todoErr := s.todoDocsRepo.QueryAllTodoDocs()
 	if todoErr != nil {
 		return nil, nil, todoErr
@@ -88,20 +104,20 @@ func (s *DocsService) GetAllDocs() (todo []*model.DocItem, cplt []*model.DocItem
 	return todoDocs, cpltDocs, nil
 }
 
-func (s *DocsService) GetDoc(doc *model.DocItem) (*model.DocItem, error) {
-	if doc.Done {
-		doc, err := s.cpltDocsRepo.QueryCpltDocById(doc.ID)
-		if err != nil {
-			return nil, err
-		}
-		return doc, nil
-	} else {
-		doc, err := s.todoDocsRepo.QueryTodoDocById(doc.ID)
-		if err != nil {
-			return nil, err
-		}
-		return doc, nil
+func (s *DocsService) GetTodoDoc(id int) (*model.TodoDocItem, error) {
+	doc, err := s.todoDocsRepo.QueryTodoDocById(id)
+	if err != nil {
+		return nil, err
 	}
+	return doc, nil
+}
+
+func (s *DocsService) GetCpltDoc(id int) (*model.CpltDocItem, error) {
+	doc, err := s.cpltDocsRepo.QueryCpltDocById(id)
+	if err != nil {
+		return nil, err
+	}
+	return doc, nil
 }
 
 func (s *DocsService) CompleteDoc(id int) error {
@@ -117,7 +133,8 @@ func (s *DocsService) CompleteDoc(id int) error {
 	if err != nil {
 		return err
 	}
-	_, err = s.cpltDocsRepo.CreateCpltDoc(doc)
+
+	_, err = s.cpltDocsRepo.CreateCpltDoc(model.Todo2CpltDocItem(doc))
 	if err != nil {
 		return err
 	}
