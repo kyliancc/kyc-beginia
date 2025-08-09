@@ -2,10 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"github.com/kyliancc/kyc-beginia/src/handler"
 	_ "github.com/mattn/go-sqlite3"
-	"log"
 )
 
 func main() {
@@ -19,20 +20,20 @@ func main() {
 
 	docsHandler := handler.NewDocsHandler(db)
 
-	vDocs := r.Group("/api/v1/docs")
+	docs := r.Group("/api/v1/docs")
 	{
-		vDocs.POST("/create", docsHandler.CreateDoc)
-		vDocs.POST("/update_todo", docsHandler.UpdateTodoDoc)
-		vDocs.POST("/update_cplt", docsHandler.UpdateCpltDoc)
-		vDocs.DELETE("/delete_todo", docsHandler.DeleteTodoDoc)
-		vDocs.DELETE("/delete_cplt", docsHandler.DeleteCpltDoc)
-		vDocs.GET("/get_todo", docsHandler.GetTodoDoc)
-		vDocs.GET("/get_cplt", docsHandler.GetCpltDoc)
-		vDocs.GET("/get_all_todo", docsHandler.GetAllTodoDocs)
-		vDocs.GET("/get_all_cplt", docsHandler.GetAllCpltDocs)
-		vDocs.GET("/get_all", docsHandler.GetAllDocs)
-		vDocs.POST("complete", docsHandler.CompleteDoc)
-		vDocs.POST("switch", docsHandler.SwitchTodoPriority)
+		docs.POST("/create", docsHandler.CreateDoc)
+		docs.POST("/update_todo", docsHandler.UpdateTodoDoc)
+		docs.POST("/update_cplt", docsHandler.UpdateCpltDoc)
+		docs.DELETE("/delete_todo", docsHandler.DeleteTodoDoc)
+		docs.DELETE("/delete_cplt", docsHandler.DeleteCpltDoc)
+		docs.GET("/get_todo", docsHandler.GetTodoDoc)
+		docs.GET("/get_cplt", docsHandler.GetCpltDoc)
+		docs.GET("/get_all_todo", docsHandler.GetAllTodoDocs)
+		docs.GET("/get_all_cplt", docsHandler.GetAllCpltDocs)
+		docs.GET("/get_all", docsHandler.GetAllDocs)
+		docs.POST("/complete", docsHandler.CompleteDoc)
+		docs.POST("/switch", docsHandler.SwitchTodoPriority)
 	}
 
 	log.Fatal(r.Run(":8080"))
